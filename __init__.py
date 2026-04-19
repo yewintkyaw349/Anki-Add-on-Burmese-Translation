@@ -7,8 +7,6 @@ from aqt.gui_hooks import editor_did_init_buttons
 from aqt import mw
 from aqt.utils import tooltip
 
-# --- HELPER UTILITIES ---
-
 def get_json(url):
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
     with urllib.request.urlopen(req, timeout=5) as response:
@@ -31,8 +29,6 @@ def quick_translate(text, lang="my"):
         print(f"[Addon] Translation failed: {e}")
         return ""
 
-# --- FEATURE 1: Inline Translation (Ctrl+Shift+M) ---
-# Inserts "word (မြန်မာဘာသာ)" beside the selected text
 
 def translate_selection_inline(editor):
     selected_text = editor.web.selectedText().strip()
@@ -52,8 +48,7 @@ def translate_selection_inline(editor):
         mw.taskman.run_on_main(on_done)
     threading.Thread(target=worker, daemon=True).start()
 
-# --- FEATURE 2: Notification Translation (Alt+M) ---
-# Shows "Translation: မြန်မာဘာသာ" in tooltip only, no insertion
+#connection
 
 def translate_selection_notify(editor):
     selected_text = editor.web.selectedText().strip()
@@ -70,9 +65,6 @@ def translate_selection_notify(editor):
         mw.taskman.run_on_main(on_done)
     threading.Thread(target=worker, daemon=True).start()
 
-# --- FEATURE 3: Full Card Generator (Ctrl+Shift+Alt+M) ---
-# Fills Definition (Burmese), Synonyms, and Pronunciation fields
-
 def run_full_generator(editor):
     note = editor.note
     if "Front" not in note:
@@ -84,8 +76,9 @@ def run_full_generator(editor):
         return
 
     def worker():
-        # Translation
+
         translated = quick_translate(word)
+
         if translated:
             safe_set_field(note, "Definition (Burmese)", translated)
 
@@ -99,8 +92,6 @@ def run_full_generator(editor):
         except Exception as e:
             print(f"[Addon] Synonym fetch failed: {e}")
             safe_set_field(note, "Synonyms", "None")
-
-        # Audio
         try:
             fname = f"en_audio_{word}.mp3"
             path = os.path.join(mw.col.media.dir(), fname)
@@ -126,10 +117,9 @@ def run_full_generator(editor):
 
     threading.Thread(target=worker, daemon=True).start()
 
-# --- UI INTEGRATION ---
+#making ui
 
 def setup_editor_buttons(buttons, editor):
-    # Ctrl+Shift+M — inline beside word
     buttons.append(
         editor.addButton(
             icon=None,
@@ -139,7 +129,6 @@ def setup_editor_buttons(buttons, editor):
             keys="Ctrl+Shift+M",
         )
     )
-    # Alt+M — tooltip notification only
     buttons.append(
         editor.addButton(
             icon=None,
@@ -149,7 +138,6 @@ def setup_editor_buttons(buttons, editor):
             keys="Alt+M",
         )
     )
-    # Ctrl+Shift+Alt+M — full card fill
     buttons.append(
         editor.addButton(
             icon=None,
